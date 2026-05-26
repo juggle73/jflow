@@ -85,7 +85,24 @@ else
   SOURCE_DIR="$SCRIPT_DIR/.claude"
 fi
 REMOTE_TMP=""
-cleanup() { [ -n "$REMOTE_TMP" ] && [ -d "$REMOTE_TMP" ] && rm -rf "$REMOTE_TMP"; }
+# Cleanup the remote-fetch temp dir. Defensive: only delete a path that
+#   1) is set and non-empty,
+#   2) is an existing directory,
+#   3) sits under a known mktemp prefix (/tmp, /var/folders, /private/var/folders).
+# Anything else is refused with a stderr note — better noise than rm -rf /.
+cleanup() {
+  local tmp="${REMOTE_TMP:-}"
+  [ -z "$tmp" ] && return 0
+  [ ! -d "$tmp" ] && return 0
+  case "$tmp" in
+    /tmp/*|/var/folders/*|/private/var/folders/*)
+      rm -rf -- "$tmp"
+      ;;
+    *)
+      printf 'cleanup: refusing to remove unexpected path: %s\n' "$tmp" >&2
+      ;;
+  esac
+}
 trap cleanup EXIT
 
 if [ -z "$SOURCE_DIR" ] || [ ! -d "$SOURCE_DIR" ]; then
