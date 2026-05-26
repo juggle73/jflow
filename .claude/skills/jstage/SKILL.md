@@ -78,7 +78,9 @@ Wait for the agent to return. **Surface the findings to the user verbatim** if t
 
 If the review reports critical issues, end your report with a clear recommendation: "Recommend addressing these before progressing in `<new-stage>`."
 
-### 6. Report
+### 6. Report and confirm next-stage start
+
+Output:
 
 ```
 ✅ Stage switched: <prev> → <new>
@@ -89,6 +91,19 @@ Review of <prev>:
 <verbatim or summarized findings, or "no issues found">
 ```
 
+Then, in the same turn, **explicitly ask the user** before doing any work in the new stage:
+
+> Stage `<new>` is ready. How do we proceed?
+> 1. Start working on it now (I'll act on the first item from its Next list)
+> 2. Address review findings first
+> 3. Pause — I'll wait for your direction
+
+**Stop and wait for the user's answer.** Do NOT start working on the new stage in the same turn as the transition, even if the review reported zero issues. The transition is one logical step; starting work is a separate, user-initiated step.
+
+If the new stage is `impl`, also include this reminder in the question:
+
+> ⚠ In `impl` stage I must keep `03-impl.md` updated as work happens (see the banner at the top of that file). Two milestones without updates = doing it wrong.
+
 ## Acceptance criteria
 
 - Cannot transition while any non-deferred open question exists.
@@ -96,3 +111,5 @@ Review of <prev>:
 - Review agent runs on every transition except from `release`.
 - Review findings are surfaced, not silently swallowed.
 - Cancellation leaves state.md and stage files byte-identical to pre-transition.
+- After the transition, the skill **always stops and asks** before starting any work in the new stage. Auto-continuation is forbidden.
+- When transitioning into `impl`, the confirmation prompt explicitly reminds about the `03-impl.md` work-log discipline.

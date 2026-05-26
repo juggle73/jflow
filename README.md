@@ -146,7 +146,9 @@ Every `/jstage` switch enforces two things, in order:
 
 2. **Auto-review of the just-completed stage.** After the transition, `/jstage` spawns a review agent (via the `Agent` tool) with a stage-specific prompt — checking measurability of spec goals, justification of design decisions, code-review of impl changes, coverage of tests, etc. Findings are surfaced to the user verbatim or summarized. The user decides what to do with them; nothing is auto-fixed.
 
-Result: by the time you're in a new stage, every prior decision is either explicitly made or explicitly parked with a known unblock condition — and a second pair of eyes has audited the work you just finished.
+3. **Explicit confirmation before starting the new stage.** Even with a clean review, `/jstage` does not begin work in the new stage in the same turn as the transition. It asks: «start now / address review findings first / pause». Starting work is a separate, user-initiated step. When the new stage is `impl`, the confirmation also reminds about the `03-impl.md` work-log discipline.
+
+Result: by the time you're in a new stage, every prior decision is either explicitly made or explicitly parked with a known unblock condition, a second pair of eyes has audited the work you just finished, and you've consciously chosen to start the next phase. `/jnext` reinforces this — it acts on exactly one item per call and refuses to perform stage transitions itself.
 
 ---
 

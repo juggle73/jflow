@@ -61,11 +61,33 @@ Unlike the SessionStart hook (which injects only a short summary), `/jnext` load
    - deps.md (if non-empty)
    ```
 
-10. Then **continue working**: act on the first item from `In progress` (if any) or the first item from `Next`. Do not ask for confirmation — the user already invoked `/jnext` because they want to proceed. If the first item is genuinely ambiguous (multiple equally-valid paths), ask one short clarifying question before acting.
+10. Pick the next single item: the first from `In progress` if non-empty, otherwise the first from `Next`. Call this the **chosen item**.
+
+11. **Special-case: stage transition.** If the chosen item describes a stage transition — anything matching patterns like «перейти к этапу X», «switch to <stage>», «move to <stage>», «start <stage>», «→ <stage>», or otherwise clearly meaning "go to the next stage" — do **NOT** perform the transition yourself. Instead, output:
+
+    > Next step is a stage transition: `<prev>` → `<new>`. Run `/jstage <new>` to switch — it enforces the open-questions gate and runs the auto-review of `<prev>`.
+
+    Then stop. Do not edit `state.md`, do not write the next stage file, do not start working on the new stage.
+
+12. **General case.** Otherwise, act on the **chosen item** — and only that one item. If the chosen item is genuinely ambiguous (multiple valid paths), ask one short clarifying question before acting.
+
+13. **Maintain the stage file as you work.** While in any stage, update its file as a work log:
+    - In `impl` stage: see the `Maintenance rule for Claude` banner at the top of `03-impl.md`. Append to `What was built` / `Files changed` / `Notes for review` as the chosen item progresses. Two milestones without updates = doing it wrong.
+    - In other stages: similarly keep the stage file current with the work being done; don't leave it blank.
+
+14. **Stop after one item.** When the chosen item is complete, output a short report:
+
+    > ✅ Done: <one-line summary of what changed>
+    > Files touched: <list>
+    > Next would naturally be: <one-line forecast — but do not act on it>
+
+    Then **wait**. Do NOT auto-chain into the next item. The user will run `/jnext` again to continue, or give different direction, or run `/jstage <new>` when ready to transition.
 
 ## Acceptance criteria
 
 - Reads `state.md` and the current stage file fully; does not load future stages.
 - Always logs a `resume` event.
 - Recap is compact (≤ 25 lines).
-- Proceeds to action without asking unless genuinely ambiguous.
+- Acts on **exactly one** item per invocation. Never walks multiple Next-items in one run.
+- Stage transitions are **never** performed directly — always routed through `/jstage`.
+- In impl stage, `03-impl.md` is updated as work happens, never left as template.
