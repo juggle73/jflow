@@ -31,9 +31,9 @@ ctx_int=${context_pct%.*}
 ctx_int=${ctx_int:-0}
 
 if [ "$ctx_int" -ge 75 ] 2>/dev/null; then
-  status="${status}  ⚠️ /jclear"
+  status="${status}  ⚠️ /jhandoff"
 elif [ "$ctx_int" -ge 60 ] 2>/dev/null; then
-  status="${status}  🟡 handoff soon"
+  status="${status}  🟡 /jhandoff soon"
 fi
 
 echo "$status"

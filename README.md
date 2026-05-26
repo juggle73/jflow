@@ -98,8 +98,7 @@ All commands are skills under `.claude/skills/`. They run only when invoked expl
 | `/jstep <message>` | Record a short progress note inside the current stage. |
 | `/jphase` | Read-only summary of the active task (stage, what's done, in progress, next). |
 | `/jstatus` | Read-only table of all tasks with their stage, status, last-update. |
-| `/jhandoff` | Claude writes a meaningful summary into `state.md` (`Done`, `In progress`, `Open questions`, `Next`, `Context for resume`). Use before stopping or clearing. |
-| `/jclear` | Safe wrapper for context clearing: calls `/jhandoff` if context ≥ 60% or a task is active, then instructs you to run `/clear` manually. |
+| `/jhandoff` | Save the current task's state into `state.md` (`Done`, `In progress`, `Open questions`, `Next`, `Context for resume`). Run before `/clear` or any session pause; final message tells you it's safe to clear. |
 | `/jnext` | Resume work after `/clear` or a session restart. Loads the full current-stage file and prior context, then proceeds to the next actionable step. |
 | `/jdeps [add\|remove] <task-id> [--type ...]` | Manage `deps.md` for the current task with automatic symmetric updates. |
 
@@ -140,8 +139,8 @@ The bundled `statusline.sh` shows:
 
 ```
 Opus  |  main  |  ctx:42%  |  $0.55
-Opus  |  main  |  ctx:65%  |  $1.10   handoff soon
-Opus  |  main  |  ctx:82%  |  $3.40   /jclear
+Opus  |  main  |  ctx:65%  |  $1.10   /jhandoff soon
+Opus  |  main  |  ctx:82%  |  $3.40   /jhandoff
 ```
 
 It also writes the current context percentage to a per-project bridge file at `/tmp/jflow-ctx-<hash>.json`, which the `Stop` hook reads to gently nudge you to checkpoint when crossing 60% and 75% thresholds. The nudge fires only **once per threshold crossing**, not on every Stop.
@@ -168,7 +167,7 @@ It also writes the current context percentage to a per-project bridge file at `/
     │   ├── jphase/SKILL.md
     │   ├── jstatus/SKILL.md
     │   ├── jhandoff/SKILL.md
-    │   ├── jclear/SKILL.md
+    │   ├── jnext/SKILL.md
     │   ├── jdeps/SKILL.md
     │   └── _templates/                  # stage templates
     └── tasks/
@@ -203,7 +202,7 @@ curl -fsSL https://raw.githubusercontent.com/juggle73/jflow/main/install.sh | ba
 ## Design notes
 
 - **Bridge file isolation.** Parallel Claude Code sessions in different projects do not conflict because the bridge file path includes a hash of `$CLAUDE_PROJECT_DIR`.
-- **Why `/jclear` doesn't run `/clear` automatically.** `/clear` is a CLI-level command interpreted before reaching Claude. A skill cannot inject it. `/jclear` prepares state and instructs the user to run `/clear` themselves.
+- **Why we don't auto-run `/clear`.** `/clear` is a CLI-level command interpreted before reaching Claude. A skill cannot inject it. `/jhandoff` saves state and tells you it's safe to type `/clear` yourself — one keystroke, and you keep an explicit confirmation that the save happened.
 - **Hooks are quiet by default.** The `Stop` hook only prints when crossing 60% or 75% context thresholds, and only once per crossing. No noise during normal work.
 - **No external services.** Everything runs locally. No network calls outside the optional remote installer.
 

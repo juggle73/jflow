@@ -35,7 +35,7 @@ last_level=""
 echo "$current_level" > "$warn_file"
 
 if [ "$current_level" = "warning" ]; then
-  echo "Контекст: ${ctx_int}%. Рекомендую запланировать /jclear в ближайшее время."
+  echo "Контекст: ${ctx_int}%. Запланируй /jhandoff в ближайшее время — он сохранит state и подготовит к /clear."
 elif [ "$current_level" = "critical" ]; then
-  echo "Контекст: ${ctx_int}%. Критический уровень. Выполни /jclear сейчас."
+  echo "Контекст: ${ctx_int}%. Критический уровень. Выполни /jhandoff сейчас, затем /clear и /jnext."
 fi
