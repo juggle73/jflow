@@ -93,7 +93,7 @@ All commands are skills under `.claude/skills/`. They run only when invoked expl
 
 | Command | Purpose |
 |---------|---------|
-| `/jnew <task-id> [--from <task>]` | Create a new task with all stage templates. |
+| `/jnew [id <task-id>] [<description>]` | Start a new task. Both arguments are optional — if you skip the description, Claude asks you; if you skip the ID, Claude proposes one. The spec (`00-spec.md`) is drafted interactively, not left as a blank template. |
 | `/jstage <stage>` | Switch focus to a stage (`spec`, `design`, `plan`, `impl`, `test`, `release`). Loads only the target stage in full plus 30-line summaries of earlier stages. |
 | `/jstep <message>` | Record a short progress note inside the current stage. |
 | `/jphase` | Read-only summary of the active task (stage, what's done, in progress, next). |
