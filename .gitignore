@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# install.sh artifacts
+*.bak.*
+
+# Claude Code local-only overrides
+.claude/settings.local.json
+
+# Dogfood: if jflow is used on the jflow repo itself, tasks are user data
+.claude/tasks/
+.claude/current-task
+
+# Temp / runtime files (normally under /tmp, listed for safety)
+jflow-ctx-*.json
+jflow-last-warn-*
