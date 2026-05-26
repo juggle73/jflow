@@ -23,3 +23,6 @@
 # Temp / runtime files (normally under /tmp, listed for safety)
 jflow-ctx-*.json
 jflow-last-warn-*
+
+# Internal spec — not published
+spec/
