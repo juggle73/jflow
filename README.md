@@ -94,7 +94,7 @@ All commands are skills under `.claude/skills/`. They run only when invoked expl
 | Command | Purpose |
 |---------|---------|
 | `/jnew [id <task-id>] [<description>]` | Start a new task. Both arguments are optional — if you skip the description, Claude asks you; if you skip the ID, Claude proposes one. The spec (`00-spec.md`) is drafted interactively, not left as a blank template. |
-| `/jstage <stage>` | Switch focus to a stage (`spec`, `design`, `plan`, `impl`, `test`, `release`). Loads only the target stage in full plus 30-line summaries of earlier stages. |
+| `/jstage <stage>` | Switch to a stage (`spec`, `design`, `plan`, `impl`, `test`, `release`). **Gate:** every open question from the current stage must first be answered or explicitly deferred with rationale. **Auto-review:** after the switch, a review agent audits the just-completed stage and surfaces findings. Loads only the target stage in full plus 30-line summaries of earlier stages. |
 | `/jstep <message>` | Record a short progress note inside the current stage. |
 | `/jphase` | Read-only summary of the active task (stage, what's done, in progress, next). |
 | `/jstatus` | Read-only table of all tasks with their stage, status, last-update. |
@@ -130,6 +130,23 @@ New session starts        ← SessionStart hook injects Context for resume
 - **Resume** (SessionStart hook) — injects the active task's stage, in-progress items, next steps, and `Context for resume` block (max 50 lines) into the new session's context.
 
 Together this means: even after a hard `/clear`, the new session opens with everything needed to continue.
+
+---
+
+## Stage transitions: gate + auto-review
+
+Every `/jstage` switch enforces two things, in order:
+
+1. **Open-questions gate.** Before the transition, every unresolved item in the current stage's `Open questions` is presented to the user, who must pick one of three options:
+   - **Answer now** → the answer is recorded under `Key decisions` of the stage file, and the question is cleared from `Open questions`.
+   - **Defer with rationale** → user writes the condition that would unblock the question and why it cannot be answered now. The item stays in `Open questions` marked `(deferred until <condition>: <reason>)`.
+   - **Cancel** → `/jstage` aborts and changes nothing.
+
+   Claude never silently answers or defers on the user's behalf.
+
+2. **Auto-review of the just-completed stage.** After the transition, `/jstage` spawns a review agent (via the `Agent` tool) with a stage-specific prompt — checking measurability of spec goals, justification of design decisions, code-review of impl changes, coverage of tests, etc. Findings are surfaced to the user verbatim or summarized. The user decides what to do with them; nothing is auto-fixed.
+
+Result: by the time you're in a new stage, every prior decision is either explicitly made or explicitly parked with a known unblock condition — and a second pair of eyes has audited the work you just finished.
 
 ---
 

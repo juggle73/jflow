@@ -50,6 +50,12 @@ Save the current task's state into `state.md` so the work can resume cleanly lat
     Safe to /clear now. Resume in a new session with /jnext.
     ```
 
+    If `## Open questions` is non-empty after the write, append a warning line
+    before the «Safe to /clear» line:
+
+    > ⚠ <N> open question(s) remain. They must be resolved (or explicitly
+    > deferred with rationale) before `/jstage` will switch stages.
+
 ## Acceptance criteria
 
 - Fast-path skips file writes when there's nothing to save.
