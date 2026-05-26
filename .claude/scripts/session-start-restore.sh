@@ -71,6 +71,6 @@ ${context_resume}"
 fi
 
 output="${output}
-Для смены задачи: /jstatus и /jstage."
+Чтобы продолжить — /jnext. Сменить задачу — /jstatus и /jstage."
 
 echo "$output"

@@ -32,7 +32,8 @@ Safely prepare for context clearing: save state, then instruct the user to run `
      
      Next steps:
      1. Run /clear to reset context.
-     2. Then type "Continue" or a specific task.
+     2. Then run /jnext to resume work from the saved state.
      
-     SessionStart hook will automatically load the summary into the new context.
+     SessionStart hook automatically injects a short summary; /jnext loads the
+     full stage file and proceeds to the next actionable step.
      ```

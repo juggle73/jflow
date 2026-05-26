@@ -100,6 +100,7 @@ All commands are skills under `.claude/skills/`. They run only when invoked expl
 | `/jstatus` | Read-only table of all tasks with their stage, status, last-update. |
 | `/jhandoff` | Claude writes a meaningful summary into `state.md` (`Done`, `In progress`, `Open questions`, `Next`, `Context for resume`). Use before stopping or clearing. |
 | `/jclear` | Safe wrapper for context clearing: calls `/jhandoff` if context ≥ 60% or a task is active, then instructs you to run `/clear` manually. |
+| `/jnext` | Resume work after `/clear` or a session restart. Loads the full current-stage file and prior context, then proceeds to the next actionable step. |
 | `/jdeps [add\|remove] <task-id> [--type ...]` | Manage `deps.md` for the current task with automatic symmetric updates. |
 
 ---
@@ -122,7 +123,7 @@ You work in a session
 New session starts        ← SessionStart hook injects Context for resume
   │
   ▼
-Claude sees state and continues without re-asking
+/jnext                    ← loads full stage file, picks up the next step
 ```
 
 - **Meaningful summary** (Claude writes) — slow path, 100% reliable when you call `/jhandoff`.
