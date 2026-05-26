@@ -4,6 +4,17 @@
     "command": "$CLAUDE_PROJECT_DIR/.claude/scripts/statusline.sh"
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/scripts/user-prompt-inject.sh",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

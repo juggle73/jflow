@@ -166,6 +166,48 @@ It also writes the current context percentage to a per-project bridge file at `/
 
 ---
 
+## Workflow enforcement (UserPromptSubmit + Stop hooks)
+
+To keep Claude on the jflow workflow even when the user types free-text instead of `/j*` commands, two hooks inject lightweight reminders:
+
+**`UserPromptSubmit` hook** (`scripts/user-prompt-inject.sh`)
+
+Before each user message reaches Claude, this hook prepends a compact context block:
+
+```
+[jflow context: task=<id> | stage=<stage> | status=<status> | state saved <N>m ago]
+
+You are working on a jflow-tracked task. Workflow reminders:
+- This is `<stage>` stage. Keep `.claude/tasks/<id>/<stage-file>` updated as work happens.
+- Stage transitions go through /jstage (not by editing state.md directly).
+- After finishing a meaningful chunk: suggest /jstep "<note>".
+- Before /clear: run /jhandoff so the next session can resume cleanly.
+- If user implies a stage transition, propose /jstage rather than performing it inline.
+
+--- User message follows:
+<actual prompt>
+```
+
+When context is ≥ 60%, the injection collapses to a single line to save tokens near auto-compact.
+
+**`Stop` hook — stale-state detector**
+
+In addition to the context-threshold warnings, `stop-monitor.sh` checks the mtime of the active task's `state.md`. If it hasn't been touched in **30 minutes** (override via `JFLOW_STALE_MIN`) while a task is active, it emits **once per stale burst**:
+
+> `jflow: задача '<id>' активна, но state.md не обновлялся 47 минут. Если велась работа — выполни /jhandoff (или хотя бы /jstep), чтобы прогресс не потерялся при /clear или закрытии сессии.`
+
+The marker is cleared when `state.md` is saved again.
+
+### Opt-out
+
+Set `JFLOW_STRICT=0` in your shell environment to disable both hooks. The skills and `SessionStart` injection continue to work; only the per-prompt and stale-state nudges go quiet.
+
+### Token cost
+
+Per user message in normal mode: ~120 tokens. In compact mode (ctx ≥ 60%): ~30 tokens. Acceptable price for staying aligned; if you object, opt out.
+
+---
+
 ## File layout (after installation)
 
 ```
@@ -176,7 +218,8 @@ It also writes the current context percentage to a per-project bridge file at `/
     ├── scripts/
     │   ├── _lib.sh                      # cross-platform helpers (OS detect, hash, ISO dates)
     │   ├── statusline.sh                # statusline + bridge file writer
-    │   ├── stop-monitor.sh              # throttled threshold warnings
+    │   ├── user-prompt-inject.sh        # injects jflow context into every user prompt
+    │   ├── stop-monitor.sh              # context-threshold + stale-state warnings
     │   ├── session-end-snapshot.sh      # auto-dump on session end
     │   └── session-start-restore.sh     # state restore on session start
     ├── skills/

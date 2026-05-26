@@ -186,6 +186,28 @@ else
   cp "$DST_SETTINGS" "$backup"
   info "Backed up existing settings to $(basename "$backup")"
 
+  # Detect malformed hook entries (missing `hooks: []` wrapper). Common cause:
+  # an older tool/plugin wrote the deprecated flat {matcher, command} schema.
+  # Current Claude Code rejects the whole file in that case.
+  malformed=$(jq -r '
+    (.hooks // {}) | to_entries[] | .key as $event | .value | to_entries[] |
+    select(.value | type == "object" and (has("hooks") | not)) |
+    "\($event)[\(.key)]"
+  ' "$DST_SETTINGS" 2>/dev/null || true)
+
+  if [ -n "$malformed" ]; then
+    color_yel "  Existing settings.json contains hook entries in the deprecated"
+    color_yel "  flat {matcher, command} format (no \"hooks\" array wrapper):"
+    while IFS= read -r path; do
+      echo "    - $path"
+    done <<< "$malformed"
+    echo ""
+    color_yel "  Claude Code rejects the whole settings file when this is present."
+    color_yel "  Fix the source tool that writes those entries, then re-run install.sh."
+    color_yel "  Skipping merge to avoid producing a broken file."
+    exit 1
+  fi
+
   tmp="${DST_SETTINGS}.tmp.$$"
   jq --slurpfile new "$SRC_SETTINGS" '
     . as $orig | $new[0] as $n |
@@ -197,9 +219,10 @@ else
     $orig
     | .statusLine = (.statusLine // $n.statusLine)
     | .hooks = (.hooks // {})
-    | .hooks.Stop         = merge_hook(.hooks.Stop;         $n.hooks.Stop[0])
-    | .hooks.SessionEnd   = merge_hook(.hooks.SessionEnd;   $n.hooks.SessionEnd[0])
-    | .hooks.SessionStart = merge_hook(.hooks.SessionStart; $n.hooks.SessionStart[0])
+    | .hooks.UserPromptSubmit = merge_hook(.hooks.UserPromptSubmit; $n.hooks.UserPromptSubmit[0])
+    | .hooks.Stop             = merge_hook(.hooks.Stop;             $n.hooks.Stop[0])
+    | .hooks.SessionEnd       = merge_hook(.hooks.SessionEnd;       $n.hooks.SessionEnd[0])
+    | .hooks.SessionStart     = merge_hook(.hooks.SessionStart;     $n.hooks.SessionStart[0])
   ' "$DST_SETTINGS" > "$tmp"
   mv "$tmp" "$DST_SETTINGS"
   info "Merged jflow hooks into existing settings.json (idempotent)"
